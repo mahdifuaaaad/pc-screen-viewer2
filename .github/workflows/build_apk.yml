@@ -18,17 +18,18 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: 3. Install Linux & Android Build Dependencies
+      - name: 3. Install System Dependencies
         run: |
+          sudo dpkg --add-architecture i386
           sudo apt-get update
           sudo apt-get install -y \
             build-essential git zip unzip openjdk-17-jdk \
             autoconf libtool pkg-config zlib1g-dev \
             libncurses5-dev libncursesw5-dev libtinfo5 \
             cmake libffi-dev libssl-dev automake \
-            lld libltdl-dev
+            lld libltdl-dev patch libstdc++6:i386 zlib1g:i386
 
-      - name: 4. Generate buildozer.spec with Bundled Libraries
+      - name: 4. Generate buildozer.spec
         run: |
           cat << 'EOF' > buildozer.spec
           [app]
@@ -57,24 +58,16 @@ jobs:
           warn_on_root = 0
           EOF
 
-      - name: 5. Cache Buildozer & Android SDK/NDK
-        uses: actions/cache@v4
-        with:
-          path: |
-            .buildozer
-            ~/.buildozer
-          key: buildozer-cache-${{ runner.os }}-v1
-
-      - name: 6. Install Buildozer & Cython
+      - name: 5. Install Buildozer & Cython
         run: |
           pip install --upgrade pip
           pip install buildozer cython==0.29.36
 
-      - name: 7. Compile APK with All Libraries Inside
+      - name: 6. Build APK with Verbose Logging
         run: |
-          buildozer android debug
+          buildozer -v android debug
 
-      - name: 8. Upload Ready APK to GitHub Artifacts
+      - name: 7. Upload Ready APK to Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: NexusCast-Mobile-APK
