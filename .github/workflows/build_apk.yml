@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: 1. Checkout Repository Code
+      - name: 1. Checkout Repository
         uses: actions/checkout@v4
 
       - name: 2. Set up Python 3.10
@@ -27,9 +27,9 @@ jobs:
             autoconf libtool pkg-config zlib1g-dev \
             libncurses5-dev libncursesw5-dev libtinfo5 \
             cmake libffi-dev libssl-dev automake \
-            lld libltdl-dev patch libstdc++6:i386 zlib1g:i386
+            lld libltdl-dev patch
 
-      - name: 4. Generate Robust buildozer.spec
+      - name: 4. Generate Clean buildozer.spec
         run: |
           cat << 'EOF' > buildozer.spec
           [app]
@@ -40,8 +40,7 @@ jobs:
           source.include_exts = py,png,jpg,kv,atlas,json
           version = 1.0.0
 
-          # استخدام نسخة سريعة ومستقرة بدون حزم زائدة قد تعطل التحميل
-          requirements = python3,kivy,pillow
+          requirements = python3,kivy==2.3.0,pillow
 
           orientation = landscape
           fullscreen = 0
@@ -64,11 +63,11 @@ jobs:
           pip install --upgrade pip
           pip install --upgrade buildozer cython==0.29.36
 
-      - name: 6. Run Buildozer with Pre-fetched Setup
+      - name: 6. Build APK
         run: |
-          yes | buildozer android debug
+          buildozer -v android debug
 
-      - name: 7. Upload Ready APK to Artifacts
+      - name: 7. Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: NexusCast-Mobile-APK
