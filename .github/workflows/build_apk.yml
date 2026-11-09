@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: 3. Install System Dependencies
+      - name: 3. Install System Dependencies & 32-bit libs
         run: |
           sudo dpkg --add-architecture i386
           sudo apt-get update
@@ -27,9 +27,9 @@ jobs:
             autoconf libtool pkg-config zlib1g-dev \
             libncurses5-dev libncursesw5-dev libtinfo5 \
             cmake libffi-dev libssl-dev automake \
-            lld libltdl-dev patch
+            lld libltdl-dev patch libstdc++6:i386 zlib1g:i386
 
-      - name: 4. Generate Clean buildozer.spec
+      - name: 4. Generate Fully Corrected buildozer.spec
         run: |
           cat << 'EOF' > buildozer.spec
           [app]
@@ -58,14 +58,15 @@ jobs:
           warn_on_root = 0
           EOF
 
-      - name: 5. Install Buildozer & Cython
+      - name: 5. Clean & Setup Buildozer Environment
         run: |
+          rm -rf .buildozer
           pip install --upgrade pip
           pip install --upgrade buildozer cython==0.29.36
 
-      - name: 6. Build APK
+      - name: 6. Run Buildozer with Auto-Accept & Debug
         run: |
-          buildozer -v android debug
+          yes | buildozer -v android debug
 
       - name: 7. Upload APK Artifact
         uses: actions/upload-artifact@v4
